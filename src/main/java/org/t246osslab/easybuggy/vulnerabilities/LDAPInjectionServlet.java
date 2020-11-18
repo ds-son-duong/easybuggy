@@ -37,7 +37,7 @@ public class LDAPInjectionServlet extends DefaultLoginServlet {
         ExprNode filter;
         EntryFilteringCursor cursor = null;
         try {
-            filter = FilterParser.parse("(&(uid=" + uid.trim() + ")(userPassword=" + password.trim() + "))");
+            filter = FilterParser.parse("(&(uid=" + this.LdapEscape(uid.trim()) + ")(userPassword=" + this.LdapEscape(password.trim()) + "))");
             cursor = EmbeddedADS.getAdminSession().search(new LdapDN("ou=people,dc=t246osslab,dc=org"),
                     SearchScope.SUBTREE, filter, AliasDerefMode.NEVER_DEREF_ALIASES, null);
             if (cursor.available()) {
@@ -55,5 +55,11 @@ public class LDAPInjectionServlet extends DefaultLoginServlet {
             }
         }
         return false;
+    }
+    
+    public String LdapEscape(String ldap)
+    {
+        if(ldap == null) return "";
+        return ldap.replace("\\", "\\5C").replace("*", "\\2A").replace("(", "\\28").replace(")", "\\29").replace("\000", "\\00");
     }
 }
