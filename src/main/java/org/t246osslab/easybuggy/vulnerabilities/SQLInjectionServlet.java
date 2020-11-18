@@ -16,6 +16,8 @@ import org.t246osslab.easybuggy.core.dao.DBClient;
 import org.t246osslab.easybuggy.core.servlets.AbstractServlet;
 import org.t246osslab.easybuggy.core.utils.Closer;
 
+import com.mysql.jdbc.PreparedStatement;
+
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = { "/sqlijc" })
 public class SQLInjectionServlet extends AbstractServlet {
@@ -66,8 +68,13 @@ public class SQLInjectionServlet extends AbstractServlet {
         try {
             conn = DBClient.getConnection();
             stmt = conn.createStatement();
-            rs = stmt.executeQuery("SELECT name, secret FROM users WHERE ispublic = 'true' AND name='" + name
-                    + "' AND password='" + password + "'");
+            
+            java.sql.PreparedStatement preparedStatement = conn.prepareStatement(
+                    "SELECT name, secret FROM users WHERE ispublic = 'true' AND name = ? AND password = ?");
+            preparedStatement.setString(1, name);
+            preparedStatement.setString(2, password);
+            rs = preparedStatement.executeQuery();
+            
             StringBuilder sb = new StringBuilder();
             while (rs.next()) {
                 sb.append("<tr><td>" + rs.getString("name") + "</td><td>" + rs.getString("secret") + "</td></tr>");
